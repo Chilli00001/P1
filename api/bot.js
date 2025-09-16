@@ -3,6 +3,25 @@ import axios from 'axios';
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
+// Добавьте этот код в api/bot.js
+bot.command('test', async (ctx) => {
+  try {
+    await ctx.sendChatAction('typing');
+    
+    // Тестовый запрос
+    const testResponse = await axios.get('https://api.deepseek.com/models', {
+      headers: {
+        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+      },
+      timeout: 5000
+    });
+    
+    await ctx.reply(`API доступен! Статус: ${testResponse.status}`);
+  } catch (error) {
+    await ctx.reply(`Ошибка доступа к API: ${error.message}`);
+  }
+});
+
 // Функция для запроса к DeepSeek
 async function askDeepSeek(message) {
   try {
@@ -82,4 +101,5 @@ export default async (req, res) => {
     res.status(200).send('OK');
   }
 };
+
 
