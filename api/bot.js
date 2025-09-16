@@ -26,35 +26,41 @@ bot.command('test', async (ctx) => {
 async function askDeepSeek(message) {
   try {
     console.log('Sending request to DeepSeek API...');
-    console.log('Message:', message);
-    console.log('API Key exists:', !!process.env.DEEPSEEK_API_KEY);
     
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // Таймаут 8 секунд
+
     const response = await axios.post(
       'https://api.deepseek.com/chat/completions',
       {
         model: 'deepseek-chat',
         messages: [{ role: 'user', content: message }],
         temperature: 0.7,
-        max_tokens: 2000,
+        max_tokens: 1000, // Уменьшим на всякий случай
       },
       {
         headers: {
           'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
           'Content-Type': 'application/json',
         },
-        timeout: 10000 // 10 секунд таймаут
+        signal: controller.signal // Добавляем signal для прерывания
       }
     );
-    
+
+    clearTimeout(timeoutId);
     console.log('DeepSeek API response received');
     return response.data.choices[0].message.content;
     
   } catch (error) {
-    console.error('DeepSeek API Error:');
-    console.error('Error message:', error.message);
+    if (error.name === 'AbortError') {
+      console.error('DeepSeek API timeout: Request took too long');
+      return 'Извините, ответ занял слишком много времени ⏳';
+    }
+    
+    console.error('DeepSeek API Error:', error.message);
     if (error.response) {
       console.error('Status:', error.response.status);
-      console.error('Response data:', error.response.data);
+      console.error('Data:', JSON.stringify(error.response.data));
     }
     return 'Извините, произошла ошибка при обработке запроса 😢';
   }
@@ -101,5 +107,6 @@ export default async (req, res) => {
     res.status(200).send('OK');
   }
 };
+
 
 
