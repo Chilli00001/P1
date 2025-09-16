@@ -6,6 +6,10 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 // Функция для запроса к DeepSeek
 async function askDeepSeek(message) {
   try {
+    console.log('Sending request to DeepSeek API...');
+    console.log('Message:', message);
+    console.log('API Key exists:', !!process.env.DEEPSEEK_API_KEY);
+    
     const response = await axios.post(
       'https://api.deepseek.com/chat/completions',
       {
@@ -19,11 +23,20 @@ async function askDeepSeek(message) {
           'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
           'Content-Type': 'application/json',
         },
+        timeout: 10000 // 10 секунд таймаут
       }
     );
+    
+    console.log('DeepSeek API response received');
     return response.data.choices[0].message.content;
+    
   } catch (error) {
-    console.error('DeepSeek API Error:', error.response?.data || error.message);
+    console.error('DeepSeek API Error:');
+    console.error('Error message:', error.message);
+    if (error.response) {
+      console.error('Status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    }
     return 'Извините, произошла ошибка при обработке запроса 😢';
   }
 }
@@ -31,14 +44,19 @@ async function askDeepSeek(message) {
 // Обработка текстовых сообщений
 bot.on('text', async (ctx) => {
   try {
+    console.log('Received message from user:', ctx.message.text);
+    
     // Показываем статус "печатает"
     await ctx.sendChatAction('typing');
     
     // Получаем ответ от DeepSeek
     const response = await askDeepSeek(ctx.message.text);
     
+    console.log('Sending response to user:', response);
+    
     // Отправляем ответ пользователю
     await ctx.reply(response);
+    
   } catch (error) {
     console.error('Bot error:', error);
     await ctx.reply('Произошла ошибка, попробуйте позже.');
@@ -64,3 +82,4 @@ export default async (req, res) => {
     res.status(200).send('OK');
   }
 };
+
