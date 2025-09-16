@@ -1,29 +1,49 @@
-// api/bot.js
-const { Telegraf } = require('telegraf');
+import { Telegraf } from 'telegraf';
+import axios from 'axios';
 
-// Создаем экземпляр бота
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-// Обрабатываем команду /start
-bot.start((ctx) => {
-  ctx.reply(`Привет, ${ctx.from.first_name}! Я твой фитнес-ассистент.`);
-});
+// Функция запроса к DeepSeek API
+async function askDeepSeek(message) {
+  const url = 'https://api.deepseek.com/chat/completions';
+  const apiKey = process.env.DEEPSEEK_API_KEY; // Добавьте ключ в переменные Vercel
 
-// Обрабатываем любое текстовое сообщение
-bot.on('text', (ctx) => {
-  ctx.reply(`Пока я только повторюшка: "${ctx.message.text}"`);
-});
+  const response = await axios.post(
+    url,
+    {
+      model: 'deepseek-chat',
+      messages: [{ role: 'user', content: message }],
+      temperature: 0.7,
+      max_tokens: 2000,
+    },
+    {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
 
-// Обработчик для Vercel Serverless Function
-module.exports = async (req, res) => {
-  // Логируем запрос
-  console.log('Received request:', req.method, req.url);
-  
+  return response.data.choices[0].message.content;
+}
+
+// Обработка текстовых сообщений
+bot.on('text', async (ctx) => {
+  const userMessage = ctx.message.text;
+
   try {
-    // Важно: Telegraf ожидает body в чистом виде
-    await bot.handleUpdate(req.body, res);
+    // Отправляем запрос к DeepSeek
+    const aiResponse = await askDeepSeek(userMessage);
+    
+    // Отправляем ответ пользователю
+    await ctx.reply(aiResponse);
   } catch (error) {
-    console.error('Error handling update:', error);
-    return res.status(200).send('OK');
+    console.error('Ошибка при запросе к DeepSeek:', error);
+    await ctx.reply('Произошла ошибка, попробуйте позже.');
   }
+});
+
+// Запуск бота
+export default async (req, res) => {
+  await bot.handleUpdate(req.body, res);
 };
