@@ -6,13 +6,6 @@
       "memory": 1024
     }
   },
-  "regions": ["fra1"]
-},
-    "api/deepseek.js": {
-      "runtime": "edge",
-      "maxDuration": 30
-    }
-  },
   "regions": ["fra1"],
   "headers": [
     {
