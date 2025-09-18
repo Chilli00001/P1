@@ -4,7 +4,12 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 
 async function askDeepSeek(message) {
   try {
-    const response = await fetch(`${process.env.VERCEL_URL}/api/deepseek`, {
+    // ДОБАВЬТЕ https:// к URL!
+    const apiUrl = `https://${process.env.VERCEL_URL}/api/deepseek`;
+    
+    console.log('Sending request to:', apiUrl);
+    
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
