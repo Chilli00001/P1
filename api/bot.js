@@ -4,32 +4,36 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 
 async function askDeepSeek(message) {
   try {
-    const apiUrl = `https://${process.env.VERCEL_URL}/api/deepseek`;
-    console.log('📤 Sending request to:', apiUrl);
+    console.log('📤 Sending direct request to DeepSeek API...');
     
-    const response = await fetch(apiUrl, {
+    const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
       },
-      body: JSON.stringify({ message })
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [{ role: 'user', content: message }],
+        temperature: 0.7,
+        max_tokens: 1000
+      })
     });
 
-    console.log('📥 Response status:', response.status);
+    console.log('📥 DeepSeek response status:', response.status);
     
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('❌ Proxy error:', response.status, errorData);
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      console.error('❌ DeepSeek API error:', response.status, errorText);
+      throw new Error(`DeepSeek API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('✅ Response data:', JSON.stringify(data).substring(0, 200));
+    console.log('✅ DeepSeek response received');
     
     return data.choices[0].message.content;
   } catch (error) {
-    console.error('❌ DeepSeek request error:', error);
+    console.error('❌ Direct DeepSeek request error:', error);
     return '⚠️ Произошла ошибка. Попробуйте позже.';
   }
 }
@@ -61,4 +65,5 @@ export default async (req, res) => {
     res.status(200).send('OK');
   }
 };
+
 
