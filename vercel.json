@@ -1,0 +1,9 @@
+{
+  "functions": {
+    "api/bot.js": {
+      "maxDuration": 30,
+      "includeFiles": "**/*.json"
+    }
+  },
+  "regions": ["fra1"] // Европа может лучше работать
+}
