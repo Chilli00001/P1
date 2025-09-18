@@ -4,6 +4,16 @@ export const config = {
 
 export default async function handler(request) {
   try {
+    // Получаем API ключ из заголовков (Vercel передает его автоматически)
+    const apiKey = request.headers.get('authorization')?.replace('Bearer ', '');
+    
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: 'API key missing' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     const { message } = await request.json();
 
     if (!message) {
@@ -16,7 +26,7 @@ export default async function handler(request) {
     const deepseekResponse = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -28,6 +38,8 @@ export default async function handler(request) {
     });
 
     if (!deepseekResponse.ok) {
+      const errorText = await deepseekResponse.text();
+      console.error('DeepSeek API error:', deepseekResponse.status, errorText);
       throw new Error(`DeepSeek API error: ${deepseekResponse.status}`);
     }
 
@@ -38,8 +50,6 @@ export default async function handler(request) {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
       },
     });
 
