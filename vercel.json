@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 2,
   "functions": {
     "api/bot.js": {
       "maxDuration": 30,
@@ -27,3 +27,4 @@
     }
   ]
 }
+
