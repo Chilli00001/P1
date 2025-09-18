@@ -2,18 +2,20 @@ import { Telegraf } from 'telegraf';
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-// Функция запроса к DeepSeek через Edge Function
 async function askDeepSeek(message) {
   try {
     const response = await fetch(`${process.env.VERCEL_URL}/api/deepseek`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
       },
       body: JSON.stringify({ message })
     });
 
     if (!response.ok) {
+      const errorData = await response.json();
+      console.error('DeepSeek proxy error:', response.status, errorData);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -25,21 +27,14 @@ async function askDeepSeek(message) {
   }
 }
 
-// Обработка команды /start
 bot.start((ctx) => {
   ctx.reply('🤖 Привет! Я бот с искусственным интеллектом. Задайте мне любой вопрос!');
 });
 
-// Обработка текстовых сообщений
 bot.on('text', async (ctx) => {
   try {
-    // Показываем статус "печатает"
     await ctx.sendChatAction('typing');
-    
-    // Получаем ответ от DeepSeek
     const response = await askDeepSeek(ctx.message.text);
-    
-    // Отправляем ответ пользователю
     await ctx.reply(response);
   } catch (error) {
     console.error('Bot error:', error);
@@ -47,12 +42,10 @@ bot.on('text', async (ctx) => {
   }
 });
 
-// Обработка ошибок
 bot.catch((error) => {
   console.error('Global bot error:', error);
 });
 
-// Экспорт для Vercel
 export default async (req, res) => {
   try {
     await bot.handleUpdate(req.body, res);
