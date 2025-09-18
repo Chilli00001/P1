@@ -3,9 +3,11 @@
   "functions": {
     "api/bot.js": {
       "maxDuration": 30,
-      "memory": 1024,
-      "includeFiles": "**/*.json"
-    },
+      "memory": 1024
+    }
+  },
+  "regions": ["fra1"]
+},
     "api/deepseek.js": {
       "runtime": "edge",
       "maxDuration": 30
