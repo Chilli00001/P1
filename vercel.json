@@ -1,9 +1,29 @@
 {
+  "version": 3,
   "functions": {
     "api/bot.js": {
       "maxDuration": 30,
-      "includeFiles": "**/*.json"
+      "memory": 1024
     }
   },
-  "regions": ["fra1"] // Европа может лучше работать
+  "regions": ["fra1"],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ]
 }
