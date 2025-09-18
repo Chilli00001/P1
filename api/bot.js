@@ -4,10 +4,8 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 
 async function askDeepSeek(message) {
   try {
-    // ДОБАВЬТЕ https:// к URL!
     const apiUrl = `https://${process.env.VERCEL_URL}/api/deepseek`;
-    
-    console.log('Sending request to:', apiUrl);
+    console.log('📤 Sending request to:', apiUrl);
     
     const response = await fetch(apiUrl, {
       method: 'POST',
@@ -18,16 +16,20 @@ async function askDeepSeek(message) {
       body: JSON.stringify({ message })
     });
 
+    console.log('📥 Response status:', response.status);
+    
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('DeepSeek proxy error:', response.status, errorData);
+      console.error('❌ Proxy error:', response.status, errorData);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
+    console.log('✅ Response data:', JSON.stringify(data).substring(0, 200));
+    
     return data.choices[0].message.content;
   } catch (error) {
-    console.error('DeepSeek request error:', error);
+    console.error('❌ DeepSeek request error:', error);
     return '⚠️ Произошла ошибка. Попробуйте позже.';
   }
 }
@@ -59,3 +61,4 @@ export default async (req, res) => {
     res.status(200).send('OK');
   }
 };
+
